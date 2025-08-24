@@ -15,24 +15,68 @@ const {
   insertRow,
   distinctValues,
 } = require("./common");
+const { Pool } = require("pg");
+
+const pools = {};
+
+const getConnection = async (connStr) => {
+  if (!pools[connStr]) pools[connStr] = new Pool(connStr);
+  return pools[connStr];
+};
+
+const getConnStr = ({ host, user, password, port, database }) =>
+  `postgresql://${user}:${password}@${host}:${port}/${database}`;
+
 const configuration_workflow = (req) =>
   new Workflow({
     steps: [
       {
         name: "query",
         form: async () => {
-          const tables = await Table.find({ versioned: true });
           return new Form({
             fields: [
               {
-                name: "table",
-                label: "Table",
+                name: "host",
+                label: "Host URL",
                 type: "String",
                 required: true,
-                attributes: {
-                  options: tables.map((t) => t.name),
-                },
-                sublabel: "Select a versioned table",
+              },
+              {
+                name: "port",
+                label: "Port",
+                type: "Integer",
+                required: true,
+                default: 5432,
+              },
+              {
+                name: "user",
+                label: "User",
+                type: "String",
+                required: true,
+              },
+              {
+                name: "password",
+                label: "Password",
+                type: "String",
+                fieldview: "password",
+                required: true,
+              },
+              {
+                name: "database",
+                label: "Database",
+                type: "String",
+                required: true,
+              },
+              {
+                name: "schema",
+                label: "Schema",
+                type: "String",
+              },
+              {
+                name: "table_name",
+                label: "Table name",
+                type: "String",
+                required: true,
               },
             ],
           });
