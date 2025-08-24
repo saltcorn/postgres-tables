@@ -1,0 +1,29 @@
+{
+  "name": "@saltcorn/postgres-tables",
+  "version": "0.1.0",
+  "description": "Table provider for remote PostgreSQL tables",
+  "main": "index.js",
+  "dependencies": {
+    "@saltcorn/data": "^1.0.0",
+    "@saltcorn/markup": "^1.0.0"
+  },
+  "author": "Tom Nielsen",
+  "license": "MIT",
+  "repository": "github:saltcorn/postgres-tables",
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": 2020
+    },
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "rules": {
+      "no-unused-vars": "off",
+      "no-case-declarations": "off",
+      "no-empty": "warn",
+      "no-fallthrough": "warn"
+    }
+  }
+}
