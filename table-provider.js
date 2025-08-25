@@ -18,8 +18,10 @@ const pools = {};
 
 const getConnection = async (connStr) => {
   if (!connStr) return null;
-  const connectionString = typeof connStr === "object" ? getConnStr(connStr) : connStr;
-  if (!pools[connectionString]) pools[connectionString] = new Pool({connectionString});
+  const connectionString =
+    typeof connStr === "object" ? getConnStr(connStr) : connStr;
+  if (!pools[connectionString])
+    pools[connectionString] = new Pool({ connectionString });
   return pools[connectionString];
 };
 
@@ -162,25 +164,24 @@ module.exports = {
           });
         },
         updateRow: async (update, version_id, user) => {
-          //return await updateRow(cfg.table, update, version_id);
+          //return await updateRow(cfg.table_name, update, version_id);
         },
         insertRow: async (rec, user) => {
-          const table = Table.findOne({ name: cfg.table });
           //return await insertRow(table, rec);
         },
         countRows: async (where, opts) => {
           const pool = await getConnection(cfg);
-          return await count(cfg.table, where || {}, {
+          return await count(cfg.table_name, where || {}, {
             schema: cfg.schema,
             client: pool,
           });
         },
         distinctValues: async (fldNm, opts) => {
-          //return await distinctValues(cfg.table, fldNm, opts);
+          //return await distinctValues(cfg.table_name, fldNm, opts);
         },
         getRows: async (where, opts) => {
           const pool = await getConnection(cfg);
-          const qres = await select(cfg.table, where, {
+          const qres = await select(cfg.table_name, where, {
             schema: cfg.schema,
             client: pool,
           });
