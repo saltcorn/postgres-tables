@@ -1,3 +1,4 @@
+const db = require("@saltcorn/data/db");
 const { eval_expression } = require("@saltcorn/data/models/expression");
 const Workflow = require("@saltcorn/data/models/workflow");
 const Form = require("@saltcorn/data/models/form");
@@ -10,7 +11,13 @@ const { mkTable } = require("@saltcorn/markup");
 const { pre, code } = require("@saltcorn/markup/tags");
 const { deleteWhere, count, select, insert, update } =
   require("@saltcorn/postgres/postgres")(null);
-
+const {
+  sqlsanitize,
+  mkWhere,
+  mkSelectOptions,
+  orderByIsObject,
+  orderByIsOperator,
+} = require("@saltcorn/db-common/internal");
 const { Pool } = require("pg");
 
 const pools = {};
@@ -183,12 +190,41 @@ module.exports = {
             client: pool,
           });
         },
-        /*distinctValues: async (fldNm, opts) => {
-          return await distinctValues(cfg.table_name, fldNm, opts);
-        },*/
+        aggregationQuery: async (where, opts) => {
+          const pool = await getConnection(cfg);
+          return await count(cfg.table_name, where || {}, {
+            schema: cfg.schema,
+            client: pool,
+          });
+        },
+        distinctValues: async (fieldnm, whereObj) => {
+          const pool = await getConnection(cfg);
+          if (whereObj) {
+            const { where, values } = mkWhere(whereObj, db.isSQLite);
+            const res = await pool.query(
+              `select distinct "${db.sqlsanitize(
+                fieldnm
+              )}" from ${db.sqlsanitize(
+                cfg.table_name
+              )} ${where} order by "${db.sqlsanitize(fieldnm)}"`,
+              values
+            );
+            return res.rows.map((r) => r[fieldnm]);
+          } else {
+            const res = await pool.query(
+              `select distinct "${db.sqlsanitize(
+                fieldnm
+              )}" from ${db.sqlsanitize(
+                cfg.table_name
+              )} order by "${db.sqlsanitize(fieldnm)}"`
+            );
+            return res.rows.map((r) => r[fieldnm]);
+          }
+        },
         getRows: async (where, opts) => {
           const pool = await getConnection(cfg);
           const qres = await select(cfg.table_name, where, {
+            ...opts,
             schema: cfg.schema,
             client: pool,
           });
