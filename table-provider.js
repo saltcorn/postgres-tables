@@ -134,9 +134,9 @@ const configuration_workflow = (req) =>
               }),
             ],
           });
-          if (!ctx.columns || !ctx.columns.length) {
+          if (!ctx.fields || !ctx.fields.length) {
             if (!form.values) form.values = {};
-            form.values.columns = pack.tables[0].fields;
+            form.values.fields = pack.tables[0].fields;
           }
 
           return form;
