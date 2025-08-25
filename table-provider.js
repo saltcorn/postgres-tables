@@ -17,6 +17,7 @@ const { Pool } = require("pg");
 const pools = {};
 
 const getConnection = async (connStr) => {
+  if (!connStr) return null;
   const connStr1 = typeof connStr === "object" ? getConnStr(connStr) : connStr;
   if (!pools[connStr1]) pools[connStr1] = new Pool(connStr1);
   return pools[connStr1];
@@ -148,7 +149,7 @@ module.exports = {
   "PostgreSQL remote table": {
     configuration_workflow,
     fields: (cfg) => {
-      return cfg?.fields;
+      return cfg?.fields || [];
     },
     get_table: (cfg) => {
       return {

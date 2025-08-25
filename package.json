@@ -6,6 +6,7 @@
   "dependencies": {
     "@saltcorn/data": "^1.0.0",
     "@saltcorn/markup": "^1.0.0",
+    "@saltcorn/postgres": "^1.0.0",
     "pg": "^8.13.1"
   },
   "author": "Tom Nielsen",
