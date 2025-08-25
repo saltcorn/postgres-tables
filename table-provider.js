@@ -8,14 +8,10 @@ const { discover_tables } = require("@saltcorn/data/models/discovery");
 const { getState } = require("@saltcorn/data/db/state");
 const { mkTable } = require("@saltcorn/markup");
 const { pre, code } = require("@saltcorn/markup/tags");
-const {
-  runQuery,
-  countRows,
-  deleteRows,
-  updateRow,
-  insertRow,
-  distinctValues,
-} = require("./common");
+const { deleteWhere, count, select } = require("@saltcorn/postgres/postgres")(
+  null
+);
+
 const { Pool } = require("pg");
 
 const pools = {};
@@ -158,25 +154,36 @@ module.exports = {
       return {
         disableFiltering: true,
         deleteRows: async (where, user) => {
-          return await deleteRows(cfg.table, where, user);
+          const pool = await getConnection(cfg);
+          return await deleteWhere(cfg.table_name, where, {
+            schema: cfg.schema,
+            client: pool,
+          });
         },
         updateRow: async (update, version_id, user) => {
-          return await updateRow(cfg.table, update, version_id);
+          //return await updateRow(cfg.table, update, version_id);
         },
         insertRow: async (rec, user) => {
           const table = Table.findOne({ name: cfg.table });
-          return await insertRow(table, rec);
+          //return await insertRow(table, rec);
         },
         countRows: async (where, opts) => {
-          return await countRows(cfg.table, where || {});
+          const pool = await getConnection(cfg);
+          return await count(cfg.table, where || {}, {
+            schema: cfg.schema,
+            client: pool,
+          });
         },
         distinctValues: async (fldNm, opts) => {
-          return await distinctValues(cfg.table, fldNm, opts);
+          //return await distinctValues(cfg.table, fldNm, opts);
         },
         getRows: async (where, opts) => {
-          const table = Table.findOne({ name: cfg.table });
-          const qres = await runQuery(table, where, opts);
-          return qres.rows;
+          const pool = await getConnection(cfg);
+          const qres = await select(cfg.table, where, {
+            schema: cfg.schema,
+            client: pool,
+          });
+          return qres;
         },
       };
     },
