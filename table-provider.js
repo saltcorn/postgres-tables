@@ -18,9 +18,9 @@ const pools = {};
 
 const getConnection = async (connStr) => {
   if (!connStr) return null;
-  const connStr1 = typeof connStr === "object" ? getConnStr(connStr) : connStr;
-  if (!pools[connStr1]) pools[connStr1] = new Pool(connStr1);
-  return pools[connStr1];
+  const connectionString = typeof connStr === "object" ? getConnStr(connStr) : connStr;
+  if (!pools[connectionString]) pools[connectionString] = new Pool({connectionString});
+  return pools[connectionString];
 };
 
 const getConnStr = ({ host, user, password, port, database }) =>
