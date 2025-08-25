@@ -6,6 +6,9 @@ const FieldRepeat = require("@saltcorn/data/models/fieldrepeat");
 const Field = require("@saltcorn/data/models/field");
 const Table = require("@saltcorn/data/models/table");
 const { discover_tables } = require("@saltcorn/data/models/discovery");
+const {
+  aggregation_query_fields,
+} = require("@saltcorn/data/models/internal/query");
 const { getState } = require("@saltcorn/data/db/state");
 const { mkTable } = require("@saltcorn/markup");
 const { pre, code } = require("@saltcorn/markup/tags");
@@ -190,12 +193,20 @@ module.exports = {
             client: pool,
           });
         },
-        aggregationQuery: async (where, opts) => {
+        aggregationQuery: async (aggregations, options) => {
           const pool = await getConnection(cfg);
-          return await count(cfg.table_name, where || {}, {
-            schema: cfg.schema,
-            client: pool,
-          });
+          const { sql, values, groupBy } = aggregation_query_fields(
+            cfg.table_name,
+            aggregations,
+            { ...options, schema: cfg.schema }
+          );
+
+          console.log({sql});
+          
+          const res = await pool.query(sql, values);
+
+          if (groupBy) return res.rows;
+          return res.rows[0];
         },
         distinctValues: async (fieldnm, whereObj) => {
           const pool = await getConnection(cfg);
