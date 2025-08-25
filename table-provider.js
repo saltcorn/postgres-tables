@@ -8,9 +8,8 @@ const { discover_tables } = require("@saltcorn/data/models/discovery");
 const { getState } = require("@saltcorn/data/db/state");
 const { mkTable } = require("@saltcorn/markup");
 const { pre, code } = require("@saltcorn/markup/tags");
-const { deleteWhere, count, select } = require("@saltcorn/postgres/postgres")(
-  null
-);
+const { deleteWhere, count, select, insert, update } =
+  require("@saltcorn/postgres/postgres")(null);
 
 const { Pool } = require("pg");
 
@@ -163,11 +162,19 @@ module.exports = {
             client: pool,
           });
         },
-        updateRow: async (update, version_id, user) => {
-          //return await updateRow(cfg.table_name, update, version_id);
+        updateRow: async (updRow, id, user) => {
+          const pool = await getConnection(cfg);
+          return await update(cfg.table_name, updRow, id, {
+            schema: cfg.schema,
+            client: pool,
+          });
         },
         insertRow: async (rec, user) => {
-          //return await insertRow(table, rec);
+          const pool = await getConnection(cfg);
+          return await insert(cfg.table_name, rec, {
+            schema: cfg.schema,
+            client: pool,
+          });
         },
         countRows: async (where, opts) => {
           const pool = await getConnection(cfg);
@@ -176,9 +183,9 @@ module.exports = {
             client: pool,
           });
         },
-        distinctValues: async (fldNm, opts) => {
-          //return await distinctValues(cfg.table_name, fldNm, opts);
-        },
+        /*distinctValues: async (fldNm, opts) => {
+          return await distinctValues(cfg.table_name, fldNm, opts);
+        },*/
         getRows: async (where, opts) => {
           const pool = await getConnection(cfg);
           const qres = await select(cfg.table_name, where, {
