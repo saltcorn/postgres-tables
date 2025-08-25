@@ -4,6 +4,7 @@ const Form = require("@saltcorn/data/models/form");
 const FieldRepeat = require("@saltcorn/data/models/fieldrepeat");
 const Field = require("@saltcorn/data/models/field");
 const Table = require("@saltcorn/data/models/table");
+const { discover_tables } = require("@saltcorn/data/models/discovery");
 const { getState } = require("@saltcorn/data/db/state");
 const { mkTable } = require("@saltcorn/markup");
 const { pre, code } = require("@saltcorn/markup/tags");
@@ -20,8 +21,9 @@ const { Pool } = require("pg");
 const pools = {};
 
 const getConnection = async (connStr) => {
-  if (!pools[connStr]) pools[connStr] = new Pool(connStr);
-  return pools[connStr];
+  const connStr1 = typeof connStr === "object" ? getConnStr(connStr) : connStr;
+  if (!pools[connStr1]) pools[connStr1] = new Pool(connStr1);
+  return pools[connStr1];
 };
 
 const getConnStr = ({ host, user, password, port, database }) =>
@@ -31,7 +33,7 @@ const configuration_workflow = (req) =>
   new Workflow({
     steps: [
       {
-        name: "query",
+        name: "table",
         form: async () => {
           return new Form({
             fields: [
@@ -82,6 +84,67 @@ const configuration_workflow = (req) =>
           });
         },
       },
+      {
+        name: "fields",
+        form: async (ctx) => {
+          const pool = await getConnection(ctx);
+          const pack = await discover_tables(
+            [ctx.table_name],
+            ctx.schema,
+            pool
+          );
+          const tables = await Table.find({});
+
+          const fkey_opts = ["File", ...tables.map((t) => `Key to ${t.name}`)];
+
+          const form = new Form({
+            fields: [
+              {
+                input_type: "section_header",
+                label: "Column types",
+              },
+              new FieldRepeat({
+                name: "fields",
+                fields: [
+                  {
+                    name: "name",
+                    label: "Name",
+                    type: "String",
+                    required: true,
+                  },
+                  {
+                    name: "label",
+                    label: "Label",
+                    type: "String",
+                    required: true,
+                  },
+                  {
+                    name: "type",
+                    label: "Type",
+                    type: "String",
+                    required: true,
+                    attributes: {
+                      options: getState().type_names.concat(fkey_opts || []),
+                    },
+                  },
+                  {
+                    name: "primary_key",
+                    label: "Primary key",
+                    type: "Bool",
+                    //showIf: { type: pkey_options },
+                  },
+                ],
+              }),
+            ],
+          });
+          if (!ctx.columns || !ctx.columns.length) {
+            if (!form.values) form.values = {};
+            form.values.columns = pack.tables[0].fields;
+          }
+
+          return form;
+        },
+      },
     ],
   });
 
@@ -89,34 +152,7 @@ module.exports = {
   "PostgreSQL remote table": {
     configuration_workflow,
     fields: (cfg) => {
-      if (!cfg?.table) return [];
-
-      const table = Table.findOne({ name: cfg.table });
-      return [
-        {
-          name: "_version_id",
-          type: "String",
-          primary_key: true,
-          is_unique: true,
-        },
-        ...table.fields.map((f) => {
-          f.primary_key = false;
-          f.validator = undefined;
-          if (f.is_fkey) f.type = "Integer";
-          else f.type = f.type?.name || f.type;
-          return f;
-        }),
-        { name: "_version", label: "Version", type: "Integer" },
-        { name: "_is_latest", label: "Is latest", type: "Bool" },
-        { name: "_deleted", label: "Deleted", type: "Bool" },
-        { name: "_time", label: "Time", type: "Date" },
-        { name: "_userid", label: "User ID", type: "Integer" },
-        {
-          name: "_restore_of_version",
-          label: "Restore of version",
-          type: "Integer",
-        },
-      ];
+      return cfg?.fields;
     },
     get_table: (cfg) => {
       return {
