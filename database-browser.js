@@ -5,10 +5,14 @@ const View = require("@saltcorn/data/models/view");
 const db = require("@saltcorn/data/db");
 const Workflow = require("@saltcorn/data/models/workflow");
 const { renderForm } = require("@saltcorn/markup");
-
+const {
+  discover_tables,
+  discoverable_tables,
+} = require("@saltcorn/data/models/discovery");
 
 const { div, script, domReady, pre, code } = require("@saltcorn/markup/tags");
 const { getState } = require("@saltcorn/data/db/state");
+const { getConnection } = require("./connections");
 
 const configuration_workflow = () =>
   new Workflow({
@@ -22,6 +26,7 @@ const getForm = async ({ viewname, body }) => {
       label: "Host URL",
       type: "String",
       required: true,
+      attributes: { asideNext: true },
     },
     {
       name: "port",
@@ -35,6 +40,7 @@ const getForm = async ({ viewname, body }) => {
       label: "User",
       type: "String",
       required: true,
+      attributes: { asideNext: true },
     },
     {
       name: "password",
@@ -48,6 +54,7 @@ const getForm = async ({ viewname, body }) => {
       label: "Database",
       type: "String",
       required: true,
+      attributes: { asideNext: true },
     },
     {
       name: "schema",
@@ -63,8 +70,13 @@ const getForm = async ({ viewname, body }) => {
     noSubmitButton: true,
     additionalButtons: [
       {
+        label: "Look up tables",
+        onclick: "look_up_tables(this)",
+        class: "btn btn-primary",
+      },
+      {
         label: "Import tables",
-        onclick: "save_as_view(this)",
+        onclick: "import_tables(this)",
         class: "btn btn-primary",
       },
     ],
@@ -74,17 +86,14 @@ const getForm = async ({ viewname, body }) => {
 
 const js = (viewname) =>
   script(`
-function save_as_view(that) {
-  const form = $(that).closest('form');
-  const newviewname = prompt("Please enter the name of the view to be saved", "");
-  if(!newviewname) return;
-  $('input[name=newviewname]').val(newviewname)
-  view_post("${viewname}", "save_as_view", $(form).serialize())
+function look_up_tables(that) {
+  const form = $(that).closest('form'); 
+  view_post("${viewname}", "lookup_tables", $(form).serialize(), (r)=>{console.log("lut resp",r)})
 }
 `);
 const run = async (table_id, viewname, cfg, state, { res, req }) => {
   const form = await getForm({ viewname });
-  return renderForm(form, req.csrfToken());
+  return renderForm(form, req.csrfToken()) + js(viewname);
 };
 const runPost = async (
   table_id,
@@ -99,7 +108,6 @@ const runPost = async (
   let plot = "";
   if (!form.hasErrors) {
     const table = await Table.findOne({ name: form.values.table });
-    
   }
   form.hasErrors = false;
   form.errors = {};
@@ -110,30 +118,19 @@ const runPost = async (
   ]);
 };
 
-const save_as_view = async (table_id, viewname, config, body, { req }) => {
+const lookup_tables = async (table_id, viewname, config, body, { req }) => {
   const form = await getForm({ viewname, body });
   form.validate(body);
   if (!form.hasErrors) {
-    const { _csrf, table, plottype, newviewname, ...configuration } =
-      form.values;
-    const existing = await View.findOne({ name: newviewname });
-    if (existing) {
-      return { json: { error: "A view with that name already exists" } };
-    }
-    const tbl = await Table.findOne({ name: table });
-    const viewtemplate = plottype + "Vis";
-    await View.create({
-      table_id: tbl.id,
-      configuration,
-      name: newviewname,
-      viewtemplate,
-      min_role: 1,
-    });
-    await getState().refresh_views();
-    return { json: { success: "ok", notify: `View ${newviewname} created` } };
+    const cfg = form.values;
+    const pool = await getConnection(cfg);
+    const tbls = await discoverable_tables(cfg.schema, true, pool);
+
+    return { json: { success: "ok", tables: tbls.map((t) => t.table_name) } };
   }
   return { json: { error: "Form incomplete" } };
 };
+
 module.exports = {
   name: "PostgreSQL Database Explorer",
   display_state_form: false,
@@ -144,5 +141,5 @@ module.exports = {
   configuration_workflow,
   run,
   runPost,
-  routes: { save_as_view },
+  routes: { lookup_tables },
 };
