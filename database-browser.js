@@ -61,6 +61,13 @@ const getForm = async ({ viewname, body }) => {
       label: "Schema",
       type: "String",
     },
+    {
+      name: "tables",
+      label: "Tables",
+      type: "String",
+      class: "table-selector",
+      attributes: { options: [] },
+    },
   ];
 
   const form = new Form({
@@ -88,7 +95,11 @@ const js = (viewname) =>
   script(`
 function look_up_tables(that) {
   const form = $(that).closest('form'); 
-  view_post("${viewname}", "lookup_tables", $(form).serialize(), (r)=>{console.log("lut resp",r)})
+  view_post("${viewname}", "lookup_tables", $(form).serialize(), (r)=>{
+    console.log("lut resp",r)
+    $(".table-selector").attr("multiple", true).html(r.tables.map(t=>'<option>'+t+'</option>').join(""))
+
+  })
 }
 `);
 const run = async (table_id, viewname, cfg, state, { res, req }) => {
