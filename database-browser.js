@@ -149,13 +149,22 @@ const import_tables = async (table_id, viewname, config, body, { req }) => {
   const form = await getForm({ viewname, body });
   form.validate(body);
   if (!form.hasErrors) {
-    const cfg = form.values;
-    console.log({cfg});
-    
+    const { _csrf, tables, ...cfg } = form.values;
+
     const pool = await getConnection(cfg);
     //const tbls = await discoverable_tables(cfg.schema, true, pool);
-    const pack = await discover_tables([], cfg.schema, pool);
-    return { json: { success: "ok", notify: "Foo bar" } };
+    const pack = await discover_tables(body.tables, cfg.schema, pool);
+    for (const tableCfg of pack.tables) {
+
+      await Table.create({
+        name: tableCfg.name,
+        provider_name: "PostgreSQL remote table",
+        provider_cfg: { ...cfg, fields: tableCfg.fields },
+      });
+    }
+    return {
+      json: { success: "ok", notify: `Imported ${pack.tables.length} tables` },
+    };
   }
   return { json: { error: "Form incomplete" } };
 };
