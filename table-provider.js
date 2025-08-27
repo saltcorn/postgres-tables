@@ -201,7 +201,6 @@ module.exports = {
             { ...options, schema: cfg.schema }
           );
 
-          console.log({sql});
           
           const res = await pool.query(sql, values);
 
