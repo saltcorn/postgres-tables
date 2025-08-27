@@ -96,10 +96,13 @@ const js = (viewname) =>
 function look_up_tables(that) {
   const form = $(that).closest('form'); 
   view_post("${viewname}", "lookup_tables", $(form).serialize(), (r)=>{
-    console.log("lut resp",r)
     $(".table-selector").attr("multiple", true).html(r.tables.map(t=>'<option>'+t+'</option>').join(""))
 
   })
+}
+function import_tables(that) {
+  const form = $(that).closest('form'); 
+  view_post("${viewname}", "import_tables", $(form).serialize())
 }
 `);
 const run = async (table_id, viewname, cfg, state, { res, req }) => {
@@ -142,6 +145,21 @@ const lookup_tables = async (table_id, viewname, config, body, { req }) => {
   return { json: { error: "Form incomplete" } };
 };
 
+const import_tables = async (table_id, viewname, config, body, { req }) => {
+  const form = await getForm({ viewname, body });
+  form.validate(body);
+  if (!form.hasErrors) {
+    const cfg = form.values;
+    console.log({cfg});
+    
+    const pool = await getConnection(cfg);
+    //const tbls = await discoverable_tables(cfg.schema, true, pool);
+    const pack = await discover_tables([], cfg.schema, pool);
+    return { json: { success: "ok", notify: "Foo bar" } };
+  }
+  return { json: { error: "Form incomplete" } };
+};
+
 module.exports = {
   name: "PostgreSQL Database Explorer",
   display_state_form: false,
@@ -152,5 +170,5 @@ module.exports = {
   configuration_workflow,
   run,
   runPost,
-  routes: { lookup_tables },
+  routes: { lookup_tables, import_tables },
 };
