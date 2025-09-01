@@ -8,6 +8,7 @@ const Table = require("@saltcorn/data/models/table");
 const { discover_tables } = require("@saltcorn/data/models/discovery");
 const {
   aggregation_query_fields,
+  joinfield_renamer,
 } = require("@saltcorn/data/models/internal/query");
 const { getState } = require("@saltcorn/data/db/state");
 const { mkTable } = require("@saltcorn/markup");
@@ -232,14 +233,17 @@ module.exports = {
             name: cfg.table_name,
             fields: cfg.fields,
           });
-          const { sql, values } = await pseudoTable.getJoinedQuery({
-            schema: cfg.schema,
-            ...opts,
-          });
-          //console.log({ sql, values });          
+          const { sql, values, joinFields, aggregations } =
+            await pseudoTable.getJoinedQuery({
+              schema: cfg.schema,
+              ...opts,
+            });
+          //console.log({ sql, values });
           const res = await pool.query(sql, values);
-          //TODO renamer
-          return res.rows;
+          let rows = joinfield_renamer
+            ? joinfield_renamer(joinFields, aggregations)(res.rows)
+            : res.rows;
+          return rows;
         },
       };
     },
