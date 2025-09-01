@@ -226,6 +226,21 @@ module.exports = {
           });
           return qres;
         },
+        getJoinedRows: async (opts) => {
+          const pool = await getConnection(cfg);
+          const pseudoTable = new Table({
+            name: cfg.table_name,
+            fields: cfg.fields,
+          });
+          const { sql, values } = await pseudoTable.getJoinedQuery({
+            schema: cfg.schema,
+            ...opts,
+          });
+          //console.log({ sql, values });          
+          const res = await pool.query(sql, values);
+          //TODO renamer
+          return res.rows;
+        },
       };
     },
   },
