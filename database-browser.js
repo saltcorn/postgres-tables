@@ -155,9 +155,7 @@ const import_tables = async (table_id, viewname, config, body, { req }) => {
     //const tbls = await discoverable_tables(cfg.schema, true, pool);
     const pack = await discover_tables(body.tables, cfg.schema, pool);
     for (const tableCfg of pack.tables) {
-
-      await Table.create({
-        name: tableCfg.name,
+      await Table.create(tableCfg.name, {
         provider_name: "PostgreSQL remote table",
         provider_cfg: { ...cfg, fields: tableCfg.fields },
       });
