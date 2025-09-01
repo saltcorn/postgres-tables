@@ -157,7 +157,11 @@ const import_tables = async (table_id, viewname, config, body, { req }) => {
     for (const tableCfg of pack.tables) {
       await Table.create(tableCfg.name, {
         provider_name: "PostgreSQL remote table",
-        provider_cfg: { ...cfg, fields: tableCfg.fields },
+        provider_cfg: {
+          ...cfg,
+          table_name: tableCfg.name,
+          fields: tableCfg.fields,
+        },
       });
     }
     return {
