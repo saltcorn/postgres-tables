@@ -23,7 +23,7 @@ const getForm = async ({ viewname, body }) => {
   const fields = [
     {
       name: "host",
-      label: "Host URL",
+      label: "Database host",
       type: "String",
       required: true,
       attributes: { asideNext: true },

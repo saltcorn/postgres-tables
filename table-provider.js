@@ -35,7 +35,7 @@ const configuration_workflow = (req) =>
             fields: [
               {
                 name: "host",
-                label: "Host URL",
+                label: "Database host",
                 type: "String",
                 required: true,
               },
