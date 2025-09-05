@@ -153,7 +153,11 @@ const import_tables = async (table_id, viewname, config, body, { req }) => {
 
     const pool = await getConnection(cfg);
     //const tbls = await discoverable_tables(cfg.schema, true, pool);
-    const pack = await discover_tables(body.tables, cfg.schema, pool);
+    const pack = await discover_tables(
+      Array.isArray(body.tables) ? body.tables : [body.tables],
+      cfg.schema,
+      pool
+    );
     for (const tableCfg of pack.tables) {
       await Table.create(tableCfg.name, {
         provider_name: "PostgreSQL remote table",
