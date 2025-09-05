@@ -158,18 +158,45 @@ const import_tables = async (table_id, viewname, config, body, { req }) => {
       cfg.schema,
       pool
     );
+    const imported = [],
+      updated = [],
+      skipped = [];
     for (const tableCfg of pack.tables) {
-      await Table.create(tableCfg.name, {
-        provider_name: "PostgreSQL remote table",
-        provider_cfg: {
-          ...cfg,
-          table_name: tableCfg.name,
-          fields: tableCfg.fields,
-        },
-      });
+      const existing = Table.findOne({ name: tableCfg.name });
+      if (existing?.provider_name === "PostgreSQL remote table") {
+        updated.push(tableCfg.name);
+        await existing.update({
+          provider_cfg: {
+            ...cfg,
+            table_name: tableCfg.name,
+            fields: tableCfg.fields,
+          },
+        });
+      } else if (existing) {
+        skipped.push(tableCfg.name);
+      } else {
+        imported.push(tableCfg.name);
+        await Table.create(tableCfg.name, {
+          provider_name: "PostgreSQL remote table",
+          provider_cfg: {
+            ...cfg,
+            table_name: tableCfg.name,
+            fields: tableCfg.fields,
+          },
+        });
+      }
     }
     return {
-      json: { success: "ok", notify: `Imported ${pack.tables.length} tables` },
+      json: {
+        success: "ok",
+        notify: `${
+          imported.length ? `Imported tables: ${imported.join(",")}. ` : ""
+        }${
+          updated.length ? `Updated tables: ${updated.join(",")}. ` : ""
+        }${
+          skipped.length ? `Skipped tables (name clash): ${skipped.join(",")}. ` : ""
+        }`,
+      },
     };
   }
   return { json: { error: "Form incomplete" } };
