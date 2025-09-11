@@ -174,6 +174,7 @@ module.exports = {
           return await insert(cfg.table_name, rec, {
             schema: cfg.schema || "public",
             client: pool,
+            noid: true,
           });
         },
         countRows: async (where, opts) => {
