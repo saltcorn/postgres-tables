@@ -59,7 +59,7 @@ const configuration_workflow = (req) =>
                 fieldview: "password",
                 required: true,
                 sublabel:
-                  "If blank, use environment variable <code>SC_EXTPG_{database name}</code>",
+                  "If blank, use environment variable <code>SC_EXTPG_PASS_{database name}</code>",
               },
               {
                 name: "database",

@@ -14,7 +14,7 @@ const getConnection = async (connStr) => {
 const getConnStr = ({ host, user, password, port, database }) => {
   if (!password)
     return `postgresql://${user}:${
-      process.env[`SC_EXTPG_${database}`]
+      process.env[`SC_EXTPG_PASS_${database}`]
     }@${host}:${port}/${database}`;
   else return `postgresql://${user}:${password}@${host}:${port}/${database}`;
 };

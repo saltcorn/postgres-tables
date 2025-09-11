@@ -48,7 +48,7 @@ const getForm = async ({ viewname, body }) => {
       type: "String",
       fieldview: "password",
       sublabel:
-        "If blank, use environment variable <code>SC_EXTPG_{database name}</code>",
+        "If blank, use environment variable <code>SC_EXTPG_PASS_{database name}</code>",
       required: true,
     },
     {
