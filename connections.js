@@ -11,7 +11,12 @@ const getConnection = async (connStr) => {
   return pools[connectionString];
 };
 
-const getConnStr = ({ host, user, password, port, database }) =>
-  `postgresql://${user}:${password}@${host}:${port}/${database}`;
+const getConnStr = ({ host, user, password, port, database }) => {
+  if (!password)
+    return `postgresql://${user}:${
+      process.env[`SC_EXTPG_${database}`]
+    }@${host}:${port}/${database}`;
+  else return `postgresql://${user}:${password}@${host}:${port}/${database}`;
+};
 
 module.exports = { getConnection };

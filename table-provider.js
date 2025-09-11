@@ -58,6 +58,8 @@ const configuration_workflow = (req) =>
                 type: "String",
                 fieldview: "password",
                 required: true,
+                sublabel:
+                  "If blank, use environment variable <code>SC_EXTPG_{database name}</code>",
               },
               {
                 name: "database",
@@ -156,28 +158,28 @@ module.exports = {
         deleteRows: async (where, user) => {
           const pool = await getConnection(cfg);
           return await deleteWhere(cfg.table_name, where, {
-            schema: cfg.schema,
+            schema: cfg.schema || "public",
             client: pool,
           });
         },
         updateRow: async (updRow, id, user) => {
           const pool = await getConnection(cfg);
           return await update(cfg.table_name, updRow, id, {
-            schema: cfg.schema,
+            schema: cfg.schema || "public",
             client: pool,
           });
         },
         insertRow: async (rec, user) => {
           const pool = await getConnection(cfg);
           return await insert(cfg.table_name, rec, {
-            schema: cfg.schema,
+            schema: cfg.schema || "public",
             client: pool,
           });
         },
         countRows: async (where, opts) => {
           const pool = await getConnection(cfg);
           return await count(cfg.table_name, where || {}, {
-            schema: cfg.schema,
+            schema: cfg.schema || "public",
             client: pool,
           });
         },
@@ -186,7 +188,7 @@ module.exports = {
           const { sql, values, groupBy } = aggregation_query_fields(
             cfg.table_name,
             aggregations,
-            { ...options, schema: cfg.schema }
+            { ...options, schema: cfg.schema || "public" }
           );
 
           const res = await pool.query(sql, values);
@@ -222,7 +224,7 @@ module.exports = {
           const pool = await getConnection(cfg);
           const qres = await select(cfg.table_name, where, {
             ...opts,
-            schema: cfg.schema,
+            schema: cfg.schema || "public",
             client: pool,
           });
           return qres;
@@ -235,7 +237,7 @@ module.exports = {
           });
           const { sql, values, joinFields, aggregations } =
             await pseudoTable.getJoinedQuery({
-              schema: cfg.schema,
+              schema: cfg.schema || "public",
               ...opts,
             });
           //console.log({ sql, values });

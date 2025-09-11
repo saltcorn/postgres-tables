@@ -47,6 +47,8 @@ const getForm = async ({ viewname, body }) => {
       label: "Password",
       type: "String",
       fieldview: "password",
+      sublabel:
+        "If blank, use environment variable <code>SC_EXTPG_{database name}</code>",
       required: true,
     },
     {
@@ -138,7 +140,7 @@ const lookup_tables = async (table_id, viewname, config, body, { req }) => {
   if (!form.hasErrors) {
     const cfg = form.values;
     const pool = await getConnection(cfg);
-    const tbls = await discoverable_tables(cfg.schema, true, pool);
+    const tbls = await discoverable_tables(cfg.schema || "public", true, pool);
 
     return { json: { success: "ok", tables: tbls.map((t) => t.table_name) } };
   }
@@ -155,7 +157,7 @@ const import_tables = async (table_id, viewname, config, body, { req }) => {
     //const tbls = await discoverable_tables(cfg.schema, true, pool);
     const pack = await discover_tables(
       Array.isArray(body.tables) ? body.tables : [body.tables],
-      cfg.schema,
+      cfg.schema || "public",
       pool
     );
     const imported = [],
@@ -191,10 +193,10 @@ const import_tables = async (table_id, viewname, config, body, { req }) => {
         success: "ok",
         notify: `${
           imported.length ? `Imported tables: ${imported.join(",")}. ` : ""
-        }${
-          updated.length ? `Updated tables: ${updated.join(",")}. ` : ""
-        }${
-          skipped.length ? `Skipped tables (name clash): ${skipped.join(",")}. ` : ""
+        }${updated.length ? `Updated tables: ${updated.join(",")}. ` : ""}${
+          skipped.length
+            ? `Skipped tables (name clash): ${skipped.join(",")}. `
+            : ""
         }`,
       },
     };
