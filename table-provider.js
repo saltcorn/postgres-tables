@@ -13,8 +13,10 @@ const {
 const { getState } = require("@saltcorn/data/db/state");
 const { mkTable } = require("@saltcorn/markup");
 const { pre, code } = require("@saltcorn/markup/tags");
+const { getConnectObject } = require("@saltcorn/data/db/connect");
+
 const { deleteWhere, count, select, insert, update } =
-  require("@saltcorn/postgres/postgres")(null);
+  require("@saltcorn/postgres/postgres")(getConnectObject);
 const {
   sqlsanitize,
   mkWhere,
