@@ -95,7 +95,9 @@ const configuration_workflow = (req) =>
           );
           const tables = await Table.find({});
 
-          const fkey_opts = ["File", ...tables.map((t) => `Key to ${t.name}`)];
+
+          const real_fkey_opts = tables.map((t) => `Key to ${t.name}`)
+          const fkey_opts = ["File", ...real_fkey_opts];
 
           const form = new Form({
             fields: [
@@ -133,6 +135,14 @@ const configuration_workflow = (req) =>
                     type: "Bool",
                     //showIf: { type: pkey_options },
                   },
+                  {
+                    name: "summary_field",
+                    label: "Summary field",
+                    sublabel:
+                      "The field name, on the target table, which will be used to pick values for this key",
+                    type: "String",
+                    showIf: { type: real_fkey_opts },
+                  },
                 ],
               }),
             ],
@@ -140,6 +150,11 @@ const configuration_workflow = (req) =>
           if (!ctx.fields || !ctx.fields.length) {
             if (!form.values) form.values = {};
             form.values.fields = pack.tables[0].fields;
+          } else {
+            (ctx.fields || []).forEach((f) => {
+              if (f.type === "Key" && f.reftable_name)
+                f.type = `Key to ${f.reftable_name}`;
+            });
           }
 
           return form;
