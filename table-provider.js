@@ -29,6 +29,15 @@ const { getConnection } = require("./connections");
 
 const configuration_workflow = (req) =>
   new Workflow({
+    onDone: (ctx) => {
+      (ctx.fields || []).forEach((f) => {
+        if (f.summary_field) {
+          if (!f.attributes) f.attributes = {};
+          f.attributes.summary_field = f.summary_field;
+        }
+      });
+      return ctx;
+    },
     steps: [
       {
         name: "table",
@@ -95,8 +104,7 @@ const configuration_workflow = (req) =>
           );
           const tables = await Table.find({});
 
-
-          const real_fkey_opts = tables.map((t) => `Key to ${t.name}`)
+          const real_fkey_opts = tables.map((t) => `Key to ${t.name}`);
           const fkey_opts = ["File", ...real_fkey_opts];
 
           const form = new Form({
@@ -154,6 +162,8 @@ const configuration_workflow = (req) =>
             (ctx.fields || []).forEach((f) => {
               if (f.type === "Key" && f.reftable_name)
                 f.type = `Key to ${f.reftable_name}`;
+              if (f.attributes?.summary_field)
+                f.summary_field = f.attributes?.summary_field;
             });
           }
 
