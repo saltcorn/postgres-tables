@@ -164,6 +164,19 @@ const configuration_workflow = (req) =>
                 f.type = `Key to ${f.reftable_name}`;
               if (f.attributes?.summary_field)
                 f.summary_field = f.attributes?.summary_field;
+              const reftable_name =
+                f.reftable_name || typeof f.type === "string"
+                  ? f.type.replace("Key to ", "")
+                  : null;
+              const reftable = reftable_name && Table.findOne(reftable_name);
+              const sum_form_field = form.fields
+                .find((ff) => ff.isRepeat)
+                .fields.find((ff) => ff.name === "summary_field");
+
+              if (reftable && sum_form_field)
+                sum_form_field.attributes = {
+                  options: reftable.fields.map((f) => f.name),
+                };
             });
           }
 
