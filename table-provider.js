@@ -169,14 +169,28 @@ const configuration_workflow = (req) =>
                   ? f.type.replace("Key to ", "")
                   : null;
               const reftable = reftable_name && Table.findOne(reftable_name);
-              const sum_form_field = form.fields
-                .find((ff) => ff.isRepeat)
-                .fields.find((ff) => ff.name === "summary_field");
+              const repeater = form.fields.find((ff) => ff.isRepeat);
+              const sum_form_field = repeater.fields.find(
+                (ff) => ff.name === "summary_field"
+              );
+              if (reftable && sum_form_field) {
+                sum_form_field.showIf.type = sum_form_field.showIf.type.filter(
+                  (t) => t !== f.type
+                );
 
-              if (reftable && sum_form_field)
-                sum_form_field.attributes = {
-                  options: reftable.fields.map((f) => f.name),
-                };
+                repeater.fields.push(
+                  new Field({
+                    name: "summary_field",
+                    label: "Summary field for " + f.name,
+                    sublabel: `The field name, on the ${reftable_name} table, which will be used to pick values for this key`,
+                    type: "String",
+                    showIf: { type: f.type },
+                    attributes: {
+                      options: reftable.fields.map((f) => f.name),
+                    },
+                  })
+                );
+              }
             });
           }
 
