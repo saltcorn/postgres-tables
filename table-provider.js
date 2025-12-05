@@ -294,6 +294,7 @@ module.exports = {
             await pseudoTable.getJoinedQuery({
               schema: cfg.schema || "public",
               ...opts,
+              ignoreExternal: true,
             });
           if (db.get_sql_logging?.()) console.log(sql, values);
           const res = await pool.query(sql, values);
