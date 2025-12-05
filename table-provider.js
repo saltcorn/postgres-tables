@@ -295,7 +295,7 @@ module.exports = {
               schema: cfg.schema || "public",
               ...opts,
             });
-          //console.log({ sql, values });
+          if (db.get_sql_logging?.()) console.log(sql, values);
           const res = await pool.query(sql, values);
           let rows = joinfield_renamer
             ? joinfield_renamer(joinFields, aggregations)(res.rows)
