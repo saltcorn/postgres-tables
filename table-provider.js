@@ -300,6 +300,12 @@ module.exports = {
           let rows = joinfield_renamer
             ? joinfield_renamer(joinFields, aggregations)(res.rows)
             : res.rows;
+          for (const k of Object.keys(joinFields || {})) {
+            if (!joinFields?.[k].lookupFunction) continue;
+            for (const row of rows) {
+              row[k] = await joinFields[k].lookupFunction(row);
+            }
+          }
           return rows;
         },
       };
