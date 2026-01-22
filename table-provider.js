@@ -14,9 +14,11 @@ const { getState } = require("@saltcorn/data/db/state");
 const { mkTable } = require("@saltcorn/markup");
 const { pre, code } = require("@saltcorn/markup/tags");
 const { getConnectObject } = require("@saltcorn/data/db/connect");
+const { isNode } = require("@saltcorn/data/utils");
 
-const { deleteWhere, count, select, insert, update } =
-  require("@saltcorn/postgres/postgres")(getConnectObject);
+const { deleteWhere, count, select, insert, update } = isNode()
+  ? require("@saltcorn/postgres/postgres")(getConnectObject)
+  : {};
 const {
   sqlsanitize,
   mkWhere,
