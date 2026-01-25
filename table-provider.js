@@ -51,6 +51,7 @@ const configuration_workflow = (req) =>
                 label: "Database host",
                 type: "String",
                 required: true,
+                exclude_from_mobile: true,
               },
               {
                 name: "port",
@@ -58,12 +59,14 @@ const configuration_workflow = (req) =>
                 type: "Integer",
                 required: true,
                 default: 5432,
+                exclude_from_mobile: true,
               },
               {
                 name: "user",
                 label: "User",
                 type: "String",
                 required: true,
+                exclude_from_mobile: true,
               },
               {
                 name: "password",
@@ -73,23 +76,27 @@ const configuration_workflow = (req) =>
                 required: true,
                 sublabel:
                   "If blank, use environment variable <code>SC_EXTPG_PASS_{database name}</code>",
+                exclude_from_mobile: true,
               },
               {
                 name: "database",
                 label: "Database",
                 type: "String",
                 required: true,
+                exclude_from_mobile: true,
               },
               {
                 name: "schema",
                 label: "Schema",
                 type: "String",
+                exclude_from_mobile: true,
               },
               {
                 name: "table_name",
                 label: "Table name",
                 type: "String",
                 required: true,
+                exclude_from_mobile: true,
               },
             ],
           });
@@ -173,11 +180,11 @@ const configuration_workflow = (req) =>
               const reftable = reftable_name && Table.findOne(reftable_name);
               const repeater = form.fields.find((ff) => ff.isRepeat);
               const sum_form_field = repeater.fields.find(
-                (ff) => ff.name === "summary_field"
+                (ff) => ff.name === "summary_field",
               );
               if (reftable && sum_form_field) {
                 sum_form_field.showIf.type = sum_form_field.showIf.type.filter(
-                  (t) => t !== f.type
+                  (t) => t !== f.type,
                 );
 
                 repeater.fields.push(
@@ -190,7 +197,7 @@ const configuration_workflow = (req) =>
                     attributes: {
                       options: reftable.fields.map((f) => f.name),
                     },
-                  })
+                  }),
                 );
               }
             });
@@ -245,7 +252,7 @@ module.exports = {
           const { sql, values, groupBy } = aggregation_query_fields(
             cfg.table_name,
             aggregations,
-            { ...options, schema: cfg.schema || "public" }
+            { ...options, schema: cfg.schema || "public" },
           );
 
           const res = await pool.query(sql, values);
@@ -259,20 +266,20 @@ module.exports = {
             const { where, values } = mkWhere(whereObj, db.isSQLite);
             const res = await pool.query(
               `select distinct "${db.sqlsanitize(
-                fieldnm
+                fieldnm,
               )}" from ${db.sqlsanitize(
-                cfg.table_name
+                cfg.table_name,
               )} ${where} order by "${db.sqlsanitize(fieldnm)}"`,
-              values
+              values,
             );
             return res.rows.map((r) => r[fieldnm]);
           } else {
             const res = await pool.query(
               `select distinct "${db.sqlsanitize(
-                fieldnm
+                fieldnm,
               )}" from ${db.sqlsanitize(
-                cfg.table_name
-              )} order by "${db.sqlsanitize(fieldnm)}"`
+                cfg.table_name,
+              )} order by "${db.sqlsanitize(fieldnm)}"`,
             );
             return res.rows.map((r) => r[fieldnm]);
           }
