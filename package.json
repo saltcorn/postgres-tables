@@ -1,6 +1,6 @@
 {
   "name": "@saltcorn/postgres-tables",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Table provider for remote PostgreSQL tables",
   "main": "index.js",
   "dependencies": {
