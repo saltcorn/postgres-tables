@@ -98,6 +98,11 @@ const configuration_workflow = (req) =>
                 required: true,
                 exclude_from_mobile: true,
               },
+              {
+                name: "read_only",
+                label: "Read-only",
+                type: "Bool",
+              },
             ],
           });
         },
@@ -109,7 +114,7 @@ const configuration_workflow = (req) =>
           const pack = await discover_tables(
             [ctx.table_name],
             ctx.schema,
-            pool
+            pool,
           );
           const tables = await Table.find({});
 
@@ -218,28 +223,32 @@ module.exports = {
     get_table: (cfg) => {
       return {
         disableFiltering: true,
-        deleteRows: async (where, user) => {
-          const pool = await getConnection(cfg);
-          return await deleteWhere(cfg.table_name, where, {
-            schema: cfg.schema || "public",
-            client: pool,
-          });
-        },
-        updateRow: async (updRow, id, user) => {
-          const pool = await getConnection(cfg);
-          return await update(cfg.table_name, updRow, id, {
-            schema: cfg.schema || "public",
-            client: pool,
-          });
-        },
-        insertRow: async (rec, user) => {
-          const pool = await getConnection(cfg);
-          return await insert(cfg.table_name, rec, {
-            schema: cfg.schema || "public",
-            client: pool,
-            noid: true,
-          });
-        },
+        ...(cfg?.read_only
+          ? {}
+          : {
+              deleteRows: async (where, user) => {
+                const pool = await getConnection(cfg);
+                return await deleteWhere(cfg.table_name, where, {
+                  schema: cfg.schema || "public",
+                  client: pool,
+                });
+              },
+              updateRow: async (updRow, id, user) => {
+                const pool = await getConnection(cfg);
+                return await update(cfg.table_name, updRow, id, {
+                  schema: cfg.schema || "public",
+                  client: pool,
+                });
+              },
+              insertRow: async (rec, user) => {
+                const pool = await getConnection(cfg);
+                return await insert(cfg.table_name, rec, {
+                  schema: cfg.schema || "public",
+                  client: pool,
+                  noid: true,
+                });
+              },
+            }),
         countRows: async (where, opts) => {
           const pool = await getConnection(cfg);
           return await count(cfg.table_name, where || {}, {
