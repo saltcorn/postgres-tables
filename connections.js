@@ -6,8 +6,17 @@ const getConnection = async (connStr) => {
   if (!connStr) return null;
   const connectionString =
     typeof connStr === "object" ? getConnStr(connStr) : connStr;
-  if (!pools[connectionString])
-    pools[connectionString] = new Pool({ connectionString });
+  if (!pools[connectionString]) {
+    const poolOpt = { connectionString };
+    if (connStr.ssl) {
+      poolOpt.ssl = {
+        ca: poolOpt.ca || undefined,
+        key: poolOpt.key || undefined,
+        cert: poolOpt.cert || undefined,
+      };
+    }
+    pools[connectionString] = new Pool(poolOpt);
+  }
   return pools[connectionString];
 };
 

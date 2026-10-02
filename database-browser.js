@@ -52,6 +52,35 @@ const getForm = async ({ viewname, body }) => {
       required: true,
     },
     {
+      name: "ssl",
+      label: "SSL",
+      type: "Bool",
+    },
+    {
+      name: "ca",
+      label: "CA",
+      type: "String",
+      fieldview: "textarea",
+      exclude_from_mobile: true,
+      showIf: { ssl: true },
+    },
+    {
+      name: "key",
+      label: "Key",
+      type: "String",
+      fieldview: "textarea",
+      exclude_from_mobile: true,
+      showIf: { ssl: true },
+    },
+    {
+      name: "cert",
+      label: "Certificate",
+      type: "String",
+      fieldview: "textarea",
+      exclude_from_mobile: true,
+      showIf: { ssl: true },
+    },
+    {
       name: "database",
       label: "Database",
       type: "String",
@@ -117,7 +146,7 @@ const runPost = async (
   config,
   state,
   body,
-  { req, res }
+  { req, res },
 ) => {
   const form = await getForm({ viewname, body });
   form.validate(body);
@@ -158,7 +187,7 @@ const import_tables = async (table_id, viewname, config, body, { req }) => {
     const pack = await discover_tables(
       Array.isArray(body.tables) ? body.tables : [body.tables],
       cfg.schema || "public",
-      pool
+      pool,
     );
     const imported = [],
       updated = [],
