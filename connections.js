@@ -10,9 +10,9 @@ const getConnection = async (connStr) => {
     const poolOpt = { connectionString };
     if (connStr.ssl) {
       poolOpt.ssl = {
-        ca: poolOpt.ca || undefined,
-        key: poolOpt.key || undefined,
-        cert: poolOpt.cert || undefined,
+        ca: connStr.ca || undefined,
+        key: connStr.key || undefined,
+        cert: connStr.cert || undefined,
       };
     }
     pools[connectionString] = new Pool(poolOpt);
