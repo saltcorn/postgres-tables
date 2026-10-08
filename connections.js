@@ -7,7 +7,7 @@ const getConnection = async (connStr) => {
   const connectionString =
     typeof connStr === "object" ? getConnStr(connStr) : connStr;
   if (!pools[connectionString]) {
-    const poolOpt = { connectionString };
+    const poolOpt = { connectionString: connectionString.split("###SSL//")[0] };
     if (connStr.ssl) {
       poolOpt.ssl = {
         ca: connStr.ca || undefined,
@@ -20,12 +20,24 @@ const getConnection = async (connStr) => {
   return pools[connectionString];
 };
 
-const getConnStr = ({ host, user, password, port, database }) => {
+const getConnStr = ({
+  host,
+  user,
+  password,
+  port,
+  database,
+  ssl,
+  ca,
+  key,
+  cert,
+}) => {
+  const sslsuffix = !ssl ? "" : `###SSL//${ca}//${key}//${cert}`;
   if (!password)
     return `postgresql://${user}:${
       process.env[`SC_EXTPG_PASS_${database}`]
-    }@${host}:${port}/${database}`;
-  else return `postgresql://${user}:${password}@${host}:${port}/${database}`;
+    }@${host}:${port}/${database}${sslsuffix}`;
+  else
+    return `postgresql://${user}:${password}@${host}:${port}/${database}${sslsuffix}`;
 };
 
 module.exports = { getConnection };
